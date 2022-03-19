@@ -74,7 +74,7 @@ export default class Field {
     this.editForm.querySelector('.ok-button').addEventListener('click', (evt) => {
       evt.preventDefault();
       ticket.querySelector('.ticket-short-desc').innerText = document.getElementById('short-desc').value;
-      ticket.querySelector('.ticket-full-desc').innerText = document.getElementById('full-desc').innerText;
+      ticket.querySelector('.ticket-full-desc').innerText = document.getElementById('full-desc').value;
       this.editForm.remove();
     });
     this.editForm.querySelector('.cancel-button').addEventListener('click', (evt) => {
