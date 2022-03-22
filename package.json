@@ -53,6 +53,8 @@
   },
   "dependencies": {
     "core-js": "^3.21.1",
+    "uniqid": "^5.4.0",
+    "uuidv4": "^6.2.12",
     "webpack-merge": "^5.8.0"
   }
 }

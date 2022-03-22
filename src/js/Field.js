@@ -1,8 +1,15 @@
 /* eslint-disable no-param-reassign */
+import uniqid from 'uniqid';
+
 export default class Field {
+  constructor() {
+    this.url = 'https://dmitryvinogradov-tickets.herokuapp.com';
+  }
+
   init() {
     this.renderField();
     this.openForms();
+    this.redrawAllTickets();
   }
 
   renderField() {
@@ -52,9 +59,13 @@ export default class Field {
     document.querySelector('.field').appendChild(this.removeForm);
     this.removeForm.querySelector('.ok-button').addEventListener('click', (evt) => {
       evt.preventDefault();
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${this.url}?removeTicket`, true);
+      xhr.send(ticket.id);
       ticket.remove();
       this.removeForm.remove();
     });
+
     this.removeForm.querySelector('.cancel-button').addEventListener('click', (evt) => {
       evt.preventDefault();
       this.removeForm.remove();
@@ -69,12 +80,27 @@ export default class Field {
     this.editForm.innerHTML += `<div class = 'input-wrapper'> <h4 class = 'input-header'> Краткое описание </h4> <input class = 'form-input' id = 'short-desc' value = ${ticket.querySelector('.ticket-short-desc').innerText}></div>`;
     this.editForm.innerHTML += `<div class = 'input-wrapper'> <h4 class = 'input-header'> Полное описание </h4> <textarea id = 'full-desc' > ${ticket.querySelector('.ticket-full-desc').innerText} </textarea></div>`;
     this.editForm.innerHTML += '<div class = \'btn-group\'> <button class = \'btn cancel-button\'> Отмена </button> <button class = \'btn ok-button\'> OK </button></div>';
-
     document.querySelector('.field').appendChild(this.editForm);
     this.editForm.querySelector('.ok-button').addEventListener('click', (evt) => {
       evt.preventDefault();
-      ticket.querySelector('.ticket-short-desc').innerText = document.getElementById('short-desc').value;
-      ticket.querySelector('.ticket-full-desc').innerText = document.getElementById('full-desc').value;
+      const shortDesc = document.getElementById('short-desc').value;
+      ticket.querySelector('.ticket-short-desc').innerText = shortDesc;
+      const fullDesc = document.getElementById('full-desc').value;
+      ticket.querySelector('.ticket-full-desc').innerText = fullDesc;
+      let isReady = 'false';
+      if (ticket.querySelector('.ticket-status').classList.contains('ready')) {
+        isReady = 'true';
+      }
+      const { created } = ticket.dataset;
+      const editTicket = new FormData();
+      editTicket.append('name', shortDesc);
+      editTicket.append('description', fullDesc);
+      editTicket.append('status', isReady);
+      editTicket.append('created', created);
+      editTicket.append('id', ticket.id);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${this.url}?editTicket`, true);
+      xhr.send(editTicket);
       this.editForm.remove();
     });
     this.editForm.querySelector('.cancel-button').addEventListener('click', (evt) => {
@@ -83,17 +109,22 @@ export default class Field {
     });
   }
 
-  createTicket(shortDesc, fullDesc) {
+  createTicket(shortDesc, fullDesc, status, created) {
     const ticket = document.createElement('li');
     ticket.classList.add('ticket');
-    const date = new Date();
-    const createDate = `${date.getDay()}.${date.getMonth()}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`;
-    ticket.innerHTML = `<div class = 'ticket-header'> <div class = 'ticket-status'></div> <div class = 'ticket-short-desc'> ${shortDesc}</div><div class = 'ticket-time'> ${createDate} </div> <div class = 'edit-ticket'> </div> <div class ='remove-ticket'> </div> </div> <div class = 'ticket-full-desc'> ${fullDesc} </div>`;
+    let createDate = Date(created);
+    createDate = `${created.toLocaleDateString()}, ${created.toLocaleTimeString()}`;
+    ticket.innerHTML = `<div class = 'ticket-header'> <div class = 'ticket-status ${status}'></div> <div class = 'ticket-short-desc'> ${shortDesc}</div><div class = 'ticket-time'> ${createDate} </div> <div class = 'edit-ticket'> </div> <div class ='remove-ticket'> </div> </div> <div class = 'ticket-full-desc'> ${fullDesc} </div>`;
     ticket.querySelector('.ticket-status').addEventListener('click', (evt) => {
-      if (!evt.target.classList.contains('ready')) {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${this.url}?changeStatus`, true);
+      xhr.send(ticket.id);
+      if (evt.target.classList.contains('unready')) {
+        evt.target.classList.remove('unready');
         evt.target.classList.add('ready');
       } else {
         evt.target.classList.remove('ready');
+        evt.target.classList.add('unready');
       }
     });
     ticket.querySelector('.ticket-short-desc').addEventListener('click', (evt) => {
@@ -125,9 +156,46 @@ export default class Field {
     if (!shortDesc || !fullDesc) {
       return false;
     }
-    const ticket = this.createTicket(shortDesc, fullDesc);
+    const id = uniqid();
+    const newTicket = new FormData();
+    const created = Date.now();
+    newTicket.append('name', shortDesc);
+    newTicket.append('description', fullDesc);
+    newTicket.append('status', 'false');
+    newTicket.append('created', created);
+    newTicket.append('id', id);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${this.url}?newTicket`, true);
+    xhr.send(newTicket);
+    const ticket = this.createTicket(shortDesc, fullDesc, 'unready', created);
+    ticket.id = id;
+    ticket.dataset.created = created;
     document.querySelector('.ticket-list').appendChild(ticket);
-
     return false;
+  }
+
+  redrawAllTickets() {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', `${this.url}?allTickets`, true);
+    xhr.addEventListener('readystatechange', () => {
+      if (xhr.readyState === 4) {
+        const tickets = JSON.parse(xhr.response);
+        tickets.forEach((element) => {
+          let ticketStatus;
+          if (element.status === 'true') {
+            ticketStatus = 'ready';
+          }
+          if (element.status === 'false') {
+            ticketStatus = 'unready';
+          }
+          // eslint-disable-next-line
+          const ticket = this.createTicket(element.name, element.description, ticketStatus, new Date(Number(element.created)));
+          ticket.id = element.id;
+          ticket.dataset.created = element.created;
+          document.querySelector('ul').appendChild(ticket);
+        });
+      }
+    });
+    xhr.send();
   }
 }
