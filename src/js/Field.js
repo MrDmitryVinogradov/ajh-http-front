@@ -3,7 +3,7 @@ import uniqid from 'uniqid';
 
 export default class Field {
   constructor() {
-    this.url = 'https://dmitryvinogradov-tickets.herokuapp.com';
+    this.url = 'https://dmitryvinogradov-tickets.herokuapp.com:7080';
   }
 
   init() {
