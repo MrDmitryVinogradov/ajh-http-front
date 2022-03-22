@@ -3,7 +3,7 @@ import uniqid from 'uniqid';
 
 export default class Field {
   constructor() {
-    this.url = 'https://dmitryvinogradov-tickets.herokuapp.com';
+    this.url = 'https://dmitryvinogradov-tickets.herokuapp.com/';
   }
 
   init() {
@@ -112,8 +112,7 @@ export default class Field {
   createTicket(shortDesc, fullDesc, status, created) {
     const ticket = document.createElement('li');
     ticket.classList.add('ticket');
-    let createDate = Date(created);
-    createDate = `${created.toLocaleDateString()}, ${created.toLocaleTimeString()}`;
+    const createDate = `${new Date(created).toLocaleDateString()}, ${new Date(created).toLocaleTimeString()}`;
     ticket.innerHTML = `<div class = 'ticket-header'> <div class = 'ticket-status ${status}'></div> <div class = 'ticket-short-desc'> ${shortDesc}</div><div class = 'ticket-time'> ${createDate} </div> <div class = 'edit-ticket'> </div> <div class ='remove-ticket'> </div> </div> <div class = 'ticket-full-desc'> ${fullDesc} </div>`;
     ticket.querySelector('.ticket-status').addEventListener('click', (evt) => {
       const xhr = new XMLHttpRequest();
