@@ -3,7 +3,7 @@ import uniqid from 'uniqid';
 
 export default class Field {
   constructor() {
-    this.url = 'https://dmitryvinogradov-tickets.herokuapp.com/';
+    this.url = 'https://dmitryvinogradov-tickets.herokuapp.com';
   }
 
   init() {
@@ -177,7 +177,6 @@ export default class Field {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', `${this.url}?allTickets`, true);
     xhr.addEventListener('readystatechange', () => {
-      if (xhr.readyState === 4) {
         const tickets = JSON.parse(xhr.response);
         tickets.forEach((element) => {
           let ticketStatus;
@@ -193,7 +192,7 @@ export default class Field {
           ticket.dataset.created = element.created;
           document.querySelector('ul').appendChild(ticket);
         });
-      }
+      
     });
     xhr.send();
   }
