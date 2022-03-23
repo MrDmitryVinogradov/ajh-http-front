@@ -177,22 +177,21 @@ export default class Field {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', `${this.url}?allTickets`, true);
     xhr.addEventListener('readystatechange', () => {
-        const tickets = JSON.parse(xhr.response);
-        tickets.forEach((element) => {
-          let ticketStatus;
-          if (element.status === 'true') {
-            ticketStatus = 'ready';
-          }
-          if (element.status === 'false') {
-            ticketStatus = 'unready';
-          }
-          // eslint-disable-next-line
+      const tickets = JSON.parse(xhr.response);
+      tickets.forEach((element) => {
+        let ticketStatus;
+        if (element.status === 'true') {
+          ticketStatus = 'ready';
+        }
+        if (element.status === 'false') {
+          ticketStatus = 'unready';
+        }
+        // eslint-disable-next-line
           const ticket = this.createTicket(element.name, element.description, ticketStatus, new Date(Number(element.created)));
-          ticket.id = element.id;
-          ticket.dataset.created = element.created;
-          document.querySelector('ul').appendChild(ticket);
-        });
-      
+        ticket.id = element.id;
+        ticket.dataset.created = element.created;
+        document.querySelector('ul').appendChild(ticket);
+      });
     });
     xhr.send();
   }
