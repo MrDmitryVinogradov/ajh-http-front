@@ -179,7 +179,7 @@ export default class Field {
     xhr.addEventListener('readystatechange', () => {
       if (xhr.readyState === 4) {
         const tickets = JSON.parse(xhr.response);
-        for (let element of tickets) {
+        for (const element of tickets) {
           let ticketStatus;
           if (element.status === 'true') {
             ticketStatus = 'ready';
@@ -192,7 +192,7 @@ export default class Field {
           ticket.id = element.id;
           ticket.dataset.created = element.created;
           document.querySelector('ul').appendChild(ticket);
-        };
+        }
       }
     });
     xhr.send();
